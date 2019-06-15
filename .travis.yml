@@ -1,11 +1,27 @@
 language: rust
-rust:
-  - stable
-  - beta
-  - nightly
+
 matrix:
+  include:
+    -
+      rust: stable
+      script:
+        - cargo build --verbose --release;
+        - cargo test --verbose
+    -
+      rust: beta
+    -
+      rust: nightly
   allow_failures:
     -
       rust: nightly
   fast_finish: true
+
 cache: cargo
+
+deploy:
+  provider: releases
+  api_key:
+    secure: WSMdpPbhvfh7c4S+yyNFtyA4RqKFnQxSrg+C090RDvP9hWdPMGAnla7rOm1OqvXWHRmScV/0/bhxzdq9sYT5K7o1JZuYQkS8oS89BAE7h8S9YgHqVplGyrcNQmArbdYveg4YCREiXOiz8s5K+Xe+UuQbohzAuCU0bcR+XYH2P4jjmbXqCKuKLHxfKqCrLId4AVJilUghGpa3D5QusS2pXMyZ9rIIqSAz3XSiBGArfjgt3DEc3hWamuxu6sFJ8i2VCw/twmN82A/A96jVfGCyAuC2ssziTlme4915MkWfgL+7BPXfQrxu30VaM9jon0wSQO7m0dMdmQWBeojYnANT+SqgVLUwvt1CgXq0+a5svZlhzsX0NTa1jJGhjSg/eHYaFVZ2iDUo20EjOskMhaCC1fVwWTc4R2B5wJml0+5H6AcitC36DlbgXdcA2frdFnPg9fYINR/8CfGI1Cquyj6Tg35dYYTat9x3VkIXukwCtjLCk/89L15FjgbAKxMo8s1g4xNm2Kd5JeT2/JOo7cszQyO9Mi+HzmhcK9Rs5ODPI+X0oJmOiuj/ruHeNcbsy9ss9NKb+tEKzf3ARBt+zZtxXJF1EFcA85TtOCdTmkgdumtYgIfF4HnIea6HHvatSCiBXC9lTrfGgn/vdbL80D5qUPsbz1hj1D6KK3symfIeXcU=
+  file: target/release/ptgrep
+  on:
+    tags: true
