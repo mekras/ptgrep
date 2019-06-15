@@ -1,0 +1,27 @@
+name: ptgrep
+version: "0.1.0"
+author: Михаил Красильников <m.krasilnikov@yandex.ru>
+about: Pass through GREP.
+args:
+  -
+    pattern:
+      short: p
+      long: pattern
+      value_name: pattern
+      help: Pattern to search in command output
+      takes_value: true
+  -
+    thresholds:
+      short: t
+      long: thresholds
+      value_name: thresholds
+      help: Thresholds in format "param1=value1,param2=value2"
+      takes_value: true
+      use_delimiter: true
+  -
+    COMMAND:
+      help: Command to execute
+      required: true
+      index: 1
+      multiple: true
+      last: true
