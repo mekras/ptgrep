@@ -10,6 +10,7 @@ args:
       value_name: pattern
       help: Pattern to search in command output
       takes_value: true
+      required: true
   -
     lower:
       long: lower
@@ -18,6 +19,9 @@ args:
       help: Lower threshold in format "param=value"
       takes_value: true
       multiple: true
+      required: true
+      required_unless_all:
+        - higher
   -
     higher:
       long: higher
@@ -26,6 +30,9 @@ args:
       help: Higher threshold in format "param=value"
       takes_value: true
       multiple: true
+      required: true
+      required_unless_all:
+        - lower
   -
     COMMAND:
       help: Command to execute
