@@ -16,8 +16,8 @@ fn main() {
 
     let mut command = arguments.values_of("COMMAND").unwrap();
     let pattern = arguments.value_of("pattern").unwrap();
-    let mut thresholds = arguments.values_of("thresholds")
-        .unwrap();
+    let mut lowers = arguments.values_of("lowers").unwrap();
+    let mut highers = arguments.values_of("highers").unwrap();
 
     let process = match Command::new(command.next().unwrap())
         .args(command)
@@ -32,12 +32,21 @@ fn main() {
 
     let re = Regex::new(pattern).unwrap();
     for matches in re.captures_iter(output.as_str()) {
-        let items = &mut thresholds;
-        for threshold in items {
+        let lower_thresholds = &mut lowers;
+        for threshold in lower_thresholds {
             let parts: Vec<&str> = threshold.split("=").collect();
             let actual_value = matches.name(parts[0]).unwrap().as_str();
             let threshold_value = parts[1];
             if actual_value < threshold_value {
+                exit_code = exitcode::DATAERR;
+            }
+        }
+        let higher_thresholds = &mut highers;
+        for threshold in higher_thresholds {
+            let parts: Vec<&str> = threshold.split("=").collect();
+            let actual_value = matches.name(parts[0]).unwrap().as_str();
+            let threshold_value = parts[1];
+            if actual_value > threshold_value {
                 exit_code = exitcode::DATAERR;
             }
         }
