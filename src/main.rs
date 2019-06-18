@@ -38,10 +38,12 @@ impl Threshold {
     }
 }
 
+///
 /// Производит разбор пороговых аргументов.
 ///
 /// - kind — вид пороговых значений
 /// - values — значения аргументов для этого вида порогов из командной строки
+///
 fn parse_threshold_args(kind: ThresholdKind, values: Values) -> Vec<Threshold> {
     let mut thresholds: Vec<Threshold> = vec![];
 
@@ -69,46 +71,16 @@ fn parse_threshold_args(kind: ThresholdKind, values: Values) -> Vec<Threshold> {
     return thresholds;
 }
 
-/// Главная функция.
-fn main() {
-
-    // Список пороговых значений.
-    let mut thresholds: Vec<Threshold> = vec![];
-
-    // Разбираем аргументы вызова.
-
-    let yaml = load_yaml!("cli.yml");
-    let arguments = App::from_yaml(yaml).get_matches();
-
-    let mut command = arguments.values_of("COMMAND").unwrap();
-    let pattern = arguments.value_of("pattern").unwrap();
-
-    if arguments.is_present("lower") {
-        for argument in arguments.values_of("lower") {
-            thresholds.append(&mut parse_threshold_args(Lower, argument));
-        }
-    }
-
-    if arguments.is_present("higher") {
-        for argument in arguments.values_of("higher") {
-            thresholds.append(&mut parse_threshold_args(Higher, argument));
-        }
-    }
-
-    let process = match Command::new(command.next().unwrap())
-        .args(command)
-        .output() {
-        Ok(process) => process,
-        Err(error) => panic!("Running process error: {}", error),
-    };
-
-    let output = String::from_utf8(process.stdout).unwrap();
-
+///
+/// Обрабатывает вывод выполненной команды.
+///
+/// Возвращает список найденных проблем.
+///
+fn process_output(output: &String, pattern: Regex, thresholds: Vec<Threshold>) -> Vec<String> {
     // Список найденных проблем.
     let mut failures: Vec<String> = vec![];
 
-    let re = Regex::new(pattern).unwrap();
-    for matches in re.captures_iter(output.as_str()) {
+    for matches in pattern.captures_iter(output.as_str()) {
         for threshold in &thresholds {
             let matched = matches.name(threshold.parameter.as_str());
             if matched == None {
@@ -143,6 +115,46 @@ fn main() {
             }
         }
     }
+
+    return failures;
+}
+
+///
+/// Главная функция.
+///
+fn main() {
+    let yaml = load_yaml!("cli.yml");
+    let arguments = App::from_yaml(yaml).get_matches();
+
+    let mut command = arguments.values_of("COMMAND").unwrap();
+    let pattern = arguments.value_of("pattern").unwrap();
+    let regex = Regex::new(pattern).unwrap();
+
+    // Список пороговых значений.
+    let mut thresholds: Vec<Threshold> = vec![];
+
+    if arguments.is_present("lower") {
+        for argument in arguments.values_of("lower") {
+            thresholds.append(&mut parse_threshold_args(Lower, argument));
+        }
+    }
+
+    if arguments.is_present("higher") {
+        for argument in arguments.values_of("higher") {
+            thresholds.append(&mut parse_threshold_args(Higher, argument));
+        }
+    }
+
+    let process = match Command::new(command.next().unwrap())
+        .args(command)
+        .output() {
+        Ok(process) => process,
+        Err(error) => panic!("Running process error: {}", error),
+    };
+
+    let output = String::from_utf8(process.stdout).unwrap();
+
+    let failures: Vec<String> = process_output(&output, regex, thresholds);
 
     println!("{}", output.as_str());
 
