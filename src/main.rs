@@ -7,6 +7,8 @@ use clap::App;
 use clap::Values as InputValues;
 use regex::Regex;
 use std::collections::HashMap;
+use std::fs::File;
+use std::io::Write;
 use std::process::Command;
 use std::process::exit;
 use std::string::String;
@@ -201,6 +203,19 @@ fn main() {
         println!("‣ {}: {}", parameter, value);
     }
     println!();
+
+    if arguments.is_present("write-env") {
+        let mut data = String::new();
+        for (parameter, value) in &values {
+            data.push_str(format!("{}={}\n", parameter.to_uppercase(), value).as_str());
+        }
+
+        let filename = arguments.value_of("write-env").unwrap();
+        let mut file = File::create(filename)
+            .expect(format!("Unable to create file \"{}\".", filename).as_str());
+        file.write_all(data.as_bytes())
+            .expect(format!("Unable to write to \"{}\".", filename).as_str());
+    }
 
     let failures = check_thresholds(values, thresholds);
 

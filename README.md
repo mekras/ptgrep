@@ -13,7 +13,7 @@ PTGREP появился чтобы при использовании GitLab им
 
 В общем случае вызов ptgrep выглядит так:
 
-    ptgrep --pattern=<шаблон> <требования> -- <команда с аргументами>
+    ptgrep --pattern=<шаблон> <действия> -- <команда с аргументами>
 
 Пример: *провалить сборку если покрытие кода тестами PHPUnit меньше 80%*
 
@@ -22,6 +22,10 @@ PTGREP появился чтобы при использовании GitLab им
 Пример: *провалить сборку если PHP_CodeSniffer нашёл больше 10 ошибок **или** больше 20 предупреждений*
 
     ptgrep --pattern='OF (?P<errors>\d+) ERRORS AND (?P<warnings>\d+)' --higher=errors=10 --higher=warnings=20 -- vendor/bin/phpcs --report-summary --no-colors
+
+Пример: *записать количество ошибок и предупреждений PHP_CodeSniffer в файл*
+
+    ptgrep --pattern='OF (?P<errors>\d+) ERRORS AND (?P<warnings>\d+)' --write-env=checkstyle.env -- vendor/bin/phpcs --report-summary --no-colors
 
 ### --pattern
 
@@ -45,6 +49,18 @@ PTGREP появился чтобы при использовании GitLab им
 - `--higher=foo=12.34`
 - `--lower=foo=0 --lower=bar=0.5 --higher=baz=1000`
 
+### --write-env
+
+Записывает значения, соответстсующие шаблону `--pattern`, в указаннный файл в формате `.env`.
+Например команда
+
+    ptgrep --pattern='OF (?P<errors>\d+) ERRORS AND (?P<warnings>\d+)' --write-env=checkstyle.env -- vendor/bin/phpcs --report-summary --no-colors
+
+запишет в файл `checkstyle.env` примерно следующее:
+
+    ERRORS=668
+    WARNINGS=32
+ 
 ### Команда
 
 Вызываемая команда должна указываться после всех ключей и отделяться от них двумя дефисами — `--`:

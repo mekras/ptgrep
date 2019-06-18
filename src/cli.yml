@@ -28,6 +28,13 @@ args:
       takes_value: true
       required: true
   -
+    write-env:
+      long: write-env
+      short: e
+      value_name: filename
+      help: Dump found values (see --pattern) to the given file in .env format.
+      takes_value: true
+  -
     COMMAND:
       help: Command to execute
       required: true
