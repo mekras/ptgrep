@@ -51,7 +51,7 @@ PTGREP появился чтобы при использовании GitLab им
 
 ### --write-env
 
-Записывает значения, соответстсующие шаблону `--pattern`, в указаннный файл в формате `.env`.
+Записывает значения, соответствующие шаблону `--pattern`, в указаннный файл в формате `.env`.
 Например команда
 
     ptgrep --pattern='OF (?P<errors>\d+) ERRORS AND (?P<warnings>\d+)' --write-env=checkstyle.env -- vendor/bin/phpcs --report-summary --no-colors
