@@ -71,6 +71,22 @@ fn parse_threshold_args(kind: ThresholdKind, values: InputValues) -> Vec<Thresho
 }
 
 ///
+/// Выполняет команду.
+///
+/// Возвращает вывод команды.
+///
+fn run_command(mut command: InputValues) -> String {
+    let process = match Command::new(command.next().unwrap())
+        .args(command)
+        .output() {
+        Ok(process) => process,
+        Err(error) => panic!("Running process error: {}", error),
+    };
+    let output = String::from_utf8(process.stdout).unwrap();
+    output
+}
+
+///
 /// Извлекает значения из вывода выполненной команды.
 ///
 /// - output — вывод команды
@@ -156,7 +172,7 @@ fn main() {
     let yaml = load_yaml!("cli.yml");
     let arguments = App::from_yaml(yaml).get_matches();
 
-    let mut command = arguments.values_of("COMMAND").unwrap();
+    let command = arguments.values_of("COMMAND").unwrap();
     let pattern = arguments.value_of("pattern").unwrap();
     let regex = Regex::new(pattern).unwrap();
 
@@ -175,14 +191,7 @@ fn main() {
         }
     }
 
-    let process = match Command::new(command.next().unwrap())
-        .args(command)
-        .output() {
-        Ok(process) => process,
-        Err(error) => panic!("Running process error: {}", error),
-    };
-
-    let output = String::from_utf8(process.stdout).unwrap();
+    let output = run_command(command);
     println!("{}", output.as_str());
 
     let values = extract_values(&output, regex);
