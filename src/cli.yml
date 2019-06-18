@@ -1,38 +1,32 @@
 name: ptgrep
-version: "0.2.0"
+version: "0.3.0"
 author: Михаил Красильников <m.krasilnikov@yandex.ru>
 about: Pass through GREP.
 args:
+  -
+    higher:
+      long: higher
+      short: h
+      value_name: param=value
+      help: Higher threshold. "param" is capture group name from --pattern, "value" — float number.
+      takes_value: true
+      multiple: true
+  -
+    lower:
+      long: lower
+      short: l
+      value_name: param=value
+      help: Lower threshold. "param" is capture group name from --pattern, "value" — float number.
+      takes_value: true
+      multiple: true
   -
     pattern:
       long: pattern
       short: p
       value_name: pattern
-      help: Pattern to search in command output
+      help: Pattern to search in command output (you should specify at lest one named capture group).
       takes_value: true
       required: true
-  -
-    lower:
-      long: lower
-      short: l
-      value_name: lower
-      help: Lower threshold in format "param=value"
-      takes_value: true
-      multiple: true
-      required: true
-      required_unless_all:
-        - higher
-  -
-    higher:
-      long: higher
-      short: h
-      value_name: higher
-      help: Higher threshold in format "param=value"
-      takes_value: true
-      multiple: true
-      required: true
-      required_unless_all:
-        - lower
   -
     COMMAND:
       help: Command to execute

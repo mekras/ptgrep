@@ -193,14 +193,21 @@ fn main() {
 
     let output = run_command(command);
     println!("{}", output.as_str());
+    println!();
 
     let values = extract_values(&output, regex);
+    println!("Pattern matches:");
+    for (parameter, value) in &values {
+        println!("‣ {}: {}", parameter, value);
+    }
+    println!();
+
     let failures = check_thresholds(values, thresholds);
 
     if failures.len() > 0 {
         println!("Threshold failures:");
         for failure in failures {
-            println!(" ⋅ {}", failure);
+            println!("❌ {}", failure);
         }
         exit(exitcode::DATAERR);
     }
