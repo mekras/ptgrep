@@ -142,9 +142,9 @@ fn check_thresholds(values: HashMap<String, f32>, thresholds: Vec<Threshold>) ->
     for threshold in &thresholds {
         let value = match values.get(threshold.parameter.as_str()) {
             None => {
-                println!("Value fo \"{}\" not found in command output.", threshold.parameter);
-                exit(exitcode::DATAERR);
-            }
+                println!("Notice: value for \"{}\" not found in command output.", threshold.parameter);
+                continue;
+            },
             Some(value) => *value
         };
 
