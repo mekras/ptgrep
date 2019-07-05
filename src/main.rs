@@ -9,7 +9,7 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
-use std::process::Command;
+use std::process::{Command, ExitStatus};
 use std::process::exit;
 use std::string::String;
 
@@ -77,15 +77,17 @@ fn parse_threshold_args(kind: ThresholdKind, values: InputValues) -> Vec<Thresho
 ///
 /// Возвращает вывод команды.
 ///
-fn run_command(mut command: InputValues) -> String {
+fn run_command(mut command: InputValues) -> (String, ExitStatus) {
     let process = match Command::new(command.next().unwrap())
         .args(command)
         .output() {
         Ok(process) => process,
         Err(error) => panic!("Running process error: {}", error),
     };
+
     let output = String::from_utf8(process.stdout).unwrap();
-    output
+
+    return (output, process.status)
 }
 
 ///
@@ -193,11 +195,11 @@ fn main() {
         }
     }
 
-    let output = run_command(command);
-    println!("{}", output.as_str());
+    let (command_output, command_status) = run_command(command);
+    println!("{}", command_output.as_str());
     println!();
 
-    let values = extract_values(&output, regex);
+    let values = extract_values(&command_output, regex);
     println!("Pattern matches:");
     for (parameter, value) in &values {
         println!("‣ {}: {}", parameter, value);
@@ -226,4 +228,6 @@ fn main() {
         }
         exit(exitcode::DATAERR);
     }
+
+    exit(command_status.code().unwrap());
 }
