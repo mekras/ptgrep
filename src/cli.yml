@@ -1,5 +1,5 @@
 name: ptgrep
-version: "0.3.2"
+version: "0.3.3"
 author: Михаил Красильников <m.krasilnikov@yandex.ru>
 about: Pass through GREP.
 args:
