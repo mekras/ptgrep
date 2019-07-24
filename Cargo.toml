@@ -1,6 +1,6 @@
 [package]
 name = "ptgrep"
-version = "0.3.3"
+version = "0.3.4"
 authors = ["Михаил Красильников <m.krasilnikov@yandex.ru>"]
 
 [dependencies]

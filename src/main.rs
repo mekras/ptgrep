@@ -58,8 +58,9 @@ fn parse_threshold_args(kind: ThresholdKind, values: InputValues) -> Vec<Thresho
                     Ok(value) => value,
                     Err(error) => {
                         println!(
-                            "{} value should be a float: {}.",
+                            "Cannot convert {} value \"{}\" to float: {}.",
                             parts[0].to_string(),
+                            parts[1].to_string(),
                             error
                         );
                         exit(exitcode::DATAERR);
@@ -116,7 +117,8 @@ fn extract_values(output: &String, pattern: Regex) -> HashMap<String, f32> {
                 Ok(value) => value,
                 Err(error) => {
                     println!(
-                        "Matched value for \"{}\" should be a float: {}.",
+                        "Matched value \"{}\" for \"{}\" should be a float: {}.",
+                        one_match.as_str(),
                         name,
                         error
                     );
