@@ -197,6 +197,8 @@ fn main() {
         }
     }
 
+    let ignore_status = arguments.is_present("ignore-status");
+
     let (command_output, command_status) = run_command(command);
     println!("{}", command_output.as_str());
     println!();
@@ -231,5 +233,7 @@ fn main() {
         exit(exitcode::DATAERR);
     }
 
-    exit(command_status.code().unwrap());
+    if !ignore_status {
+        exit(command_status.code().unwrap());
+    }
 }

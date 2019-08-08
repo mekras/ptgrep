@@ -1,5 +1,5 @@
 name: ptgrep
-version: "0.3.4"
+version: "0.4.0"
 author: Михаил Красильников <m.krasilnikov@yandex.ru>
 about: Pass through GREP.
 args:
@@ -11,6 +11,11 @@ args:
       help: Higher threshold. "param" is capture group name from --pattern, "value" — float number.
       takes_value: true
       multiple: true
+  -
+    ignore-status:
+      long: ignore-status
+      short: x
+      help: Ignore command exit status.
   -
     lower:
       long: lower
