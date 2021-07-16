@@ -27,4 +27,4 @@ deploy:
     - target/release/ptgrep
     - target/release/ptgrep.sha256
   on:
-    tags: true
+    branch: master
