@@ -26,5 +26,6 @@ deploy:
   file:
     - target/release/ptgrep
     - target/release/ptgrep.sha256
+  skip_cleanup: true
   on:
     tags: true
