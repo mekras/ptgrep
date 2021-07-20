@@ -88,7 +88,7 @@ fn run_command(mut command: InputValues) -> (String, ExitStatus) {
 
     let output = String::from_utf8(process.stdout).unwrap();
 
-    return (output, process.status)
+    return (output, process.status);
 }
 
 ///
@@ -148,7 +148,7 @@ fn check_thresholds(values: HashMap<String, f32>, thresholds: Vec<Threshold>) ->
             None => {
                 println!("Notice: value for \"{}\" not found in command output.", threshold.parameter);
                 continue;
-            },
+            }
             Some(value) => *value
         };
 
@@ -234,6 +234,9 @@ fn main() {
     }
 
     if !ignore_status {
-        exit(command_status.code().unwrap());
+        match command_status.code() {
+            Some(code) => exit(code),
+            None => exit(exitcode::OSERR),
+        }
     }
 }
