@@ -4,13 +4,12 @@ extern crate exitcode;
 extern crate regex;
 
 use clap::App;
-use clap::Values as InputValues;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Write;
-use std::process::{Command, ExitStatus};
 use std::process::exit;
+use std::process::{Command, ExitStatus};
 use std::string::String;
 
 /// Виды пороговых значений.
@@ -45,32 +44,35 @@ impl Threshold {
 /// - kind — вид пороговых значений
 /// - values — значения аргументов для этого вида порогов из командной строки
 ///
-fn parse_threshold_args(kind: ThresholdKind, values: InputValues) -> Vec<Threshold> {
+fn parse_threshold_args(kind: ThresholdKind, values: Vec<&str>) -> Vec<Threshold> {
     let mut thresholds: Vec<Threshold> = vec![];
 
     for value in values {
         let parts: Vec<&str> = value.split("=").collect();
-        thresholds.push(
-            Threshold {
-                parameter: parts[0].to_string(),
-                kind,
-                value: match parts[1].parse::<f32>() {
-                    Ok(value) => value,
-                    Err(error) => {
-                        println!(
-                            "Cannot convert {} value \"{}\" to float: {}.",
-                            parts[0].to_string(),
-                            parts[1].to_string(),
-                            error
-                        );
-                        exit(exitcode::DATAERR);
-                    }
-                },
-            }
-        );
+        if parts.len() != 2 {
+            println!("Invalid threshold format: {}. Expected format: parameter=value", value);
+            exit(exitcode::DATAERR);
+        }
+
+        thresholds.push(Threshold {
+            parameter: parts[0].to_string(),
+            kind,
+            value: match parts[1].parse::<f32>() {
+                Ok(value) => value,
+                Err(error) => {
+                    println!(
+                        "Cannot convert {} value \"{}\" to float: {}.",
+                        parts[0].to_string(),
+                        parts[1].to_string(),
+                        error
+                    );
+                    exit(exitcode::DATAERR);
+                }
+            },
+        });
     }
 
-    return thresholds;
+    thresholds
 }
 
 ///
@@ -78,17 +80,21 @@ fn parse_threshold_args(kind: ThresholdKind, values: InputValues) -> Vec<Thresho
 ///
 /// Возвращает вывод команды.
 ///
-fn run_command(mut command: InputValues) -> (String, ExitStatus) {
-    let process = match Command::new(command.next().unwrap())
-        .args(command)
-        .output() {
+fn run_command(command_args: Vec<&str>) -> (String, ExitStatus) {
+    if command_args.is_empty() {
+        panic!("No command provided.");
+    }
+
+    let process = match Command::new(command_args[0])
+        .args(&command_args[1..])
+        .output()
+    {
         Ok(process) => process,
         Err(error) => panic!("Running process error: {}", error),
     };
 
-    let output = String::from_utf8(process.stdout).unwrap();
-
-    return (output, process.status);
+    let output = String::from_utf8_lossy(&process.stdout).into_owned();
+    (output, process.status)
 }
 
 ///
@@ -131,7 +137,7 @@ fn extract_values(output: &String, pattern: Regex) -> HashMap<String, f32> {
         }
     }
 
-    return values;
+    values
 }
 
 ///
@@ -146,29 +152,30 @@ fn check_thresholds(values: HashMap<String, f32>, thresholds: Vec<Threshold>) ->
     for threshold in &thresholds {
         let value = match values.get(threshold.parameter.as_str()) {
             None => {
-                println!("Notice: value for \"{}\" not found in command output.", threshold.parameter);
+                println!(
+                    "Notice: value for \"{}\" not found in command output.",
+                    threshold.parameter
+                );
                 continue;
             }
-            Some(value) => *value
+            Some(value) => *value,
         };
 
         if !threshold.satisfied(value) {
-            failures.push(
-                format!(
-                    "{} value {} is {} than {}",
-                    threshold.parameter,
-                    value,
-                    match threshold.kind {
-                        ThresholdKind::Lower => "lower",
-                        ThresholdKind::Higher => "higher",
-                    },
-                    threshold.value
-                )
-            );
+            failures.push(format!(
+                "{} value {} is {} than {}",
+                threshold.parameter,
+                value,
+                match threshold.kind {
+                    ThresholdKind::Lower => "lower",
+                    ThresholdKind::Higher => "higher",
+                },
+                threshold.value
+            ));
         }
     }
 
-    return failures;
+    failures
 }
 
 ///
@@ -178,7 +185,14 @@ fn main() {
     let yaml = load_yaml!("cli.yml");
     let arguments = App::from_yaml(yaml).get_matches();
 
-    let command = arguments.values_of("COMMAND").unwrap();
+    let command_args: Vec<&str> = match arguments.values_of("COMMAND") {
+        Some(values) => values.collect(),
+        None => {
+            println!("No command provided.");
+            exit(exitcode::USAGE);
+        }
+    };
+
     let pattern = arguments.value_of("pattern").unwrap();
     let regex = Regex::new(pattern).unwrap();
 
@@ -186,20 +200,22 @@ fn main() {
     let mut thresholds: Vec<Threshold> = vec![];
 
     if arguments.is_present("lower") {
-        for argument in arguments.values_of("lower") {
-            thresholds.append(&mut parse_threshold_args(ThresholdKind::Lower, argument));
+        if let Some(values) = arguments.values_of("lower") {
+            let values_vec: Vec<&str> = values.collect();
+            thresholds.append(&mut parse_threshold_args(ThresholdKind::Lower, values_vec));
         }
     }
 
     if arguments.is_present("higher") {
-        for argument in arguments.values_of("higher") {
-            thresholds.append(&mut parse_threshold_args(ThresholdKind::Higher, argument));
+        if let Some(values) = arguments.values_of("higher") {
+            let values_vec: Vec<&str> = values.collect();
+            thresholds.append(&mut parse_threshold_args(ThresholdKind::Higher, values_vec));
         }
     }
 
     let ignore_status = arguments.is_present("ignore-status");
 
-    let (command_output, command_status) = run_command(command);
+    let (command_output, command_status) = run_command(command_args);
     println!("{}", command_output.as_str());
     println!();
 
